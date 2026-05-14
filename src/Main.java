@@ -28,6 +28,7 @@ public class Main {
         calculator.setYears(years);
         calculator.calculatePayments();
 
+
         printSchedule(calculator);
 
         scanner.close(); // хорошая практика
