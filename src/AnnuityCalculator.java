@@ -1,8 +1,11 @@
 import java.util.ArrayList;
 import java.util.List;
 
+// Калькулятор аннуитетных платежей
 public class AnnuityCalculator implements ICalculator {
+
     private double principal;
+    private double downPayment;
     private double annualInterestRate;
     private int years;
     private List<Payment> payments;
@@ -10,6 +13,11 @@ public class AnnuityCalculator implements ICalculator {
     @Override
     public void setPrincipal(double principal) {
         this.principal = principal;
+    }
+
+    @Override
+    public void setDownPayment(double downPayment) {  // ДЗ: обработка первоначального взноса
+        this.downPayment = downPayment;
     }
 
     @Override
@@ -24,30 +32,28 @@ public class AnnuityCalculator implements ICalculator {
 
     @Override
     public void calculatePayments() {
-        double monthlyRate = annualInterestRate / 12 / 100;
+        double loanAmount = principal - downPayment;           // Сумма реального кредита   // ДЗ: расчёт с учётом взноса
+        double monthlyRate = annualInterestRate / 12 / 100;   // Месячная процентная ставка
         int totalMonths = years * 12;
 
         // Формула аннуитетного платежа
-        double monthlyPayment = principal *
+        double monthlyPayment = loanAmount *
                 (monthlyRate * Math.pow(1 + monthlyRate, totalMonths))
                 / (Math.pow(1 + monthlyRate, totalMonths) - 1);
 
         payments = new ArrayList<>();
-        double remainingPrincipal = principal;   // ← важное исправление
+        double remaining = loanAmount;
 
         for (int month = 1; month <= totalMonths; month++) {
-            double interestPayment = remainingPrincipal * monthlyRate;
+            double interestPayment = remaining * monthlyRate;
             double principalPayment = monthlyPayment - interestPayment;
 
-            // Последний платёж — добиваем остаток
             if (month == totalMonths) {
-                principalPayment = remainingPrincipal;
+                principalPayment = remaining;   // Последний платёж — остаток
             }
 
-            remainingPrincipal -= principalPayment;
-
-            // Защита от отрицательного остатка
-            if (remainingPrincipal < 0) remainingPrincipal = 0;
+            remaining -= principalPayment;
+            if (remaining < 0) remaining = 0;
 
             payments.add(new Payment(month, principalPayment, interestPayment));
         }
@@ -59,8 +65,13 @@ public class AnnuityCalculator implements ICalculator {
     }
 
     @Override
-    public double getTotalInterest() {
+    public double getTotalInterest() {   // ДЗ: сумма всех процентов
         return payments.stream().mapToDouble(Payment::getInterestPayment).sum();
+    }
+
+    @Override
+    public double getDownPayment() {
+        return downPayment;
     }
 
     @Override

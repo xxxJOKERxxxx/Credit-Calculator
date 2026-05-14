@@ -1,16 +1,20 @@
 import java.util.ArrayList;
 import java.util.List;
 
+// Калькулятор дифференцированных платежей
 public class DifferentiatedCalculator implements ICalculator {
+
     private double principal;
+    private double downPayment;
     private double annualInterestRate;
     private int years;
     private List<Payment> payments;
 
     @Override
-    public void setPrincipal(double principal) {
-        this.principal = principal;
-    }
+    public void setPrincipal(double principal) { this.principal = principal; }
+
+    @Override
+    public void setDownPayment(double downPayment) { this.downPayment = downPayment; }
 
     @Override
     public void setAnnualInterestRate(double annualInterestRate) {
@@ -18,29 +22,28 @@ public class DifferentiatedCalculator implements ICalculator {
     }
 
     @Override
-    public void setYears(int years) {
-        this.years = years;
-    }
+    public void setYears(int years) { this.years = years; }
 
     @Override
     public void calculatePayments() {
+        double loanAmount = principal - downPayment;
         int totalMonths = years * 12;
         double monthlyRate = annualInterestRate / 12 / 100;
-        double monthlyPrincipalPayment = principal / totalMonths;  // фиксированная часть долга
+        double monthlyPrincipalPayment = loanAmount / totalMonths; // фиксированный платёж по долгу
 
         payments = new ArrayList<>();
-        double remainingPrincipal = principal;   // ← важное исправление
+        double remaining = loanAmount;
 
         for (int month = 1; month <= totalMonths; month++) {
-            double interestPayment = remainingPrincipal * monthlyRate;
+            double interestPayment = remaining * monthlyRate;
             double principalPayment = monthlyPrincipalPayment;
 
             if (month == totalMonths) {
-                principalPayment = remainingPrincipal;
+                principalPayment = remaining;
             }
 
-            remainingPrincipal -= principalPayment;
-            if (remainingPrincipal < 0) remainingPrincipal = 0;
+            remaining -= principalPayment;
+            if (remaining < 0) remaining = 0;
 
             payments.add(new Payment(month, principalPayment, interestPayment));
         }
@@ -54,6 +57,11 @@ public class DifferentiatedCalculator implements ICalculator {
     @Override
     public double getTotalInterest() {
         return payments.stream().mapToDouble(Payment::getInterestPayment).sum();
+    }
+
+    @Override
+    public double getDownPayment() {
+        return downPayment;
     }
 
     @Override
